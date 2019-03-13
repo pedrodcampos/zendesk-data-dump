@@ -10,10 +10,14 @@ def inject(data, key, target, target_key):
 
     for item in _target:
         if key in item:
-            value = next(data_item
-                         for data_item in data
-                         if data_item['id'] == item[key])
-            item.update({target_key: value})
+            if data:
+                value = next((data_item
+                              for data_item in data
+                              if data_item['id'] == item[key]), None)
+                item.update({target_key: value})
+            else:
+                item.update({target_key: None})
+
             item.pop(key)
     return _target if type(target) == list else _target[0]
 

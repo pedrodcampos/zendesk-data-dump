@@ -1,4 +1,5 @@
 import requests
+from urllib.parse import urlparse, parse_qs
 
 
 class ZendeskRequest:
@@ -29,7 +30,10 @@ class ZendeskRequest:
         next_url = response.get('next_page', None)
         data = {key: response.get(key) for key in keys}
         while next_url:
-            print(f"Getting page {response['page']}/{response['page_count']}")
+            query = parse_qs(urlparse(next_url).query)
+            page = query.get('page')
+            if page:
+                print(f"Getting page {page}")
             response = self.__session.get(next_url, params=params).json()
             for key in keys:
                 if key in response:
@@ -51,12 +55,23 @@ class ZendeskRequest:
 class ZendeskClient(ZendeskRequest):
     __permission_groups_key__ = 'permission_groups'
     __permission_groups_endpoint__ = 'guide/permission_groups'
+    __users_key__ = 'users'
+    __users_endpoint__ = 'users'
+    __search_endpoint__ = 'search'
+    __search_key__ = 'results'
 
     def __init__(self, url, auth):
         super().__init__(url, auth)
 
     def permission_groups(self):
         return super().__get__(*self.__permission_groups_endpoint__.split('/'), keys=[self.__permission_groups_key__], params=None)
+
+    def users(self):
+        return super().__get__(*self.__users_endpoint__.split('/'), keys=[self.__users_key__], params=None)
+
+    def search(self, query):
+        params = {'query': query}
+        return super().__get__(*self.__search_endpoint__.split("/"), keys=[self.__search_key__], params=params)
 
 
 class ZendeskHC(ZendeskRequest):

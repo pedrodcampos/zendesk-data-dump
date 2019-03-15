@@ -22,8 +22,8 @@ def inject(data, key, target, target_key):
     return _target if type(target) == list else _target[0]
 
 
-def to_csv(data):
-    with open('data.csv', 'w+') as csv_file:
+def to_csv(data, filename):
+    with open(filename, 'w+') as csv_file:
         writer = csv.writer(csv_file)
         write_header = True
         item_keys = []

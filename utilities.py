@@ -1,13 +1,33 @@
-from helpers import inject, to_csv
+from helpers import inject, to_csv, flatten_dict
 
 
-def dump_articles(zendesk, zendesk_hc):
-    articles, users, categories, sections = zendesk_hc.articles(
+def dump_search(zendesk, query, filename):
+    print(f"# Downloading Search results for {query}...")
+    search_results, = zendesk.client.search(query)
+    print("\tDone.")
+
+    print("# Flattening...")
+    data = [flatten_dict(result) for result in search_results]
+    print("\tDone.")
+
+    print("# Exporting...")
+    file_full_path = to_csv(data, filename or 'search.csv')
+    print(f"\tExported to{file_full_path}")
+    print("Done.")
+
+
+def dump_articles(zendesk, filename):
+    print("# Downloading Articles, users, categories and sections...")
+    articles, users, categories, sections = zendesk.helpcenter.articles(
         include='users,categories,sections')
-    user_segments, = zendesk_hc.user_segments()
+    print("\tDone.")
 
-    permission_groups, = zendesk.permission_groups()
+    print("# Downloading User segments and permission groups...")
+    user_segments, = zendesk.helpcenter.user_segments()
+    permission_groups, = zendesk.client.permission_groups()
+    print("\tDone.")
 
+    print("# Stitching files...")
     articles = inject(users, 'author_id', articles, 'author')
     articles = inject(permission_groups, 'permission_group_id',
                       articles, 'permission_group')
@@ -17,21 +37,13 @@ def dump_articles(zendesk, zendesk_hc):
     for article in articles:
         article['section'] = inject(
             categories, 'category_id', article['section'], 'category')
+    print("\tDone.")
 
-    data = [{'id': article['id'],
-             'author_name': article['author']['name'],
-             'title': article['title'],
-             'created_at': article['created_at'],
-             'edited_at': article['edited_at'],
-             'updated_at': article['updated_at'],
-             'category_name': article['section']['category']['name'],
-             'section_name':article['section']['name'],
-             'draft':article['draft'],
-             'url': article['url'],
-             'permission_group': article['name'],
-             'user_segment_name': article['user_segment']['name'] if article['user_segment'] else None,
-             'user_segment_type':article['user_segment']['user_type'] if article['user_segment'] else None
-             } for article in articles
+    print("# Flattening...")
+    data = [flatten_dict(article) for article in articles]
+    print("\tDone.")
 
-            ]
-    to_csv(data)
+    print("# Exporting...")
+    file_full_path = to_csv(data, filename or 'articles.csv')
+    print(f"\tExported to{file_full_path}")
+    print("Done.")

@@ -24,6 +24,6 @@ Argument | Name | Description
 #### Subcommands
 Command  | Description
 ---|---
-search|Download response of a search endpoint request.
+search|Download response of a search endpoint request. [See documentation](https://developer.zendesk.com/rest_api/docs/support/search#query-basics) and check what you can get from the search endpoint.
 articles|Download all articles and related information from a helpcenter
 

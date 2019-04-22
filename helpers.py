@@ -34,7 +34,7 @@ def get_flatten_key_value_pairs(data, root=None):
             yield (root, ", ".join(map(str, [item for item in data])))
         else:
             for item in data:
-                yield from get_flatten_key_value_pairs(item, path)
+                yield from get_flatten_key_value_pairs(item, root)
     else:
         yield (root, data)
 

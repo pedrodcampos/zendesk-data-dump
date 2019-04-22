@@ -6,7 +6,7 @@ def load_env():
     filename = path.join(path.curdir, '.env')
     with open(filename) as envfile:
         for line in envfile:
-            key, value = line.split("=")
+            key, value = line.strip().split("=")
             env.update({key: value})
     return env
 

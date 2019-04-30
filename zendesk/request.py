@@ -1,5 +1,6 @@
 import requests
-from urllib.parse import urlparse, parse_qs
+import time
+from urllib.parse import urlparse, parse_qs, urlencode
 
 
 class ZendeskRequest:
@@ -27,24 +28,52 @@ class ZendeskRequest:
 
     def __page_response(self, response, keys, params):
         response = response.json()
-        next_url = response.get('next_page', None)
         data = {key: response.get(key) for key in keys}
+        next_url = response.get('next_page', None)
         while next_url:
-            query = parse_qs(urlparse(next_url).query)
-            page = query.get('page')
-            response = self.__session.get(next_url, params=params).json()
+            count = response.get('count', None)
+            print(f'Got {len(data[keys[0]])}/{count}')
+
+            response = self.__session.get(next_url).json()
             for key in keys:
                 if key in response:
                     data[key] = data[key]+response[key]
-                    data[key] = self.__reduce(data[key])
             next_url = response.get('next_page', None)
 
         return data.values()
 
     def __get__(self, *endpoint_parts, keys=None,  params=None):
-        url = self.__get_enpoint_url(*endpoint_parts)
-        response = self.__session.get(url, params=params)
-        if response.status_code == 200:
-            return self.__page_response(response, keys, params)
-        else:
-            raise BaseException(f"Zendesk API Error:{response.status_code}")
+        data = {}
+        url = self.__get_enpoint_url(
+            *endpoint_parts)+('?'+urlencode(params) if params else "")
+
+        while url:
+            response = self.__session.get(url)
+
+            if response.status_code != 200:
+                raise BaseException(
+                    f"Zendesk API Error:{response.status_code}")
+
+            if response.status_code == 429:
+                print('Rate limited! Please wait.')
+                time.sleep(int(response.headers['retry-after']))
+                continue
+
+            response = response.json()
+
+            for key in keys:
+                if key in data:
+                    data[key].extend(response.get(key, None))
+                else:
+                    data[key] = response.get(key, None)
+
+            count = response.get('count', None)
+            url = response.get('next_page', None)
+
+            print(f'Got {len(data[keys[0]])}/{count}')
+
+        for key in keys:
+            if key in data:
+                data[key] = self.__reduce(data[key])
+
+        return data.values()

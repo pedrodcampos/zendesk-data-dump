@@ -27,8 +27,15 @@ def inject(data, key, target, target_key):
 def get_flatten_key_value_pairs(data, root=None):
     if isinstance(data, dict):
         for key, value in data.items():
-            path = root+"-"+key if root else key
-            yield from get_flatten_key_value_pairs(value, path)
+            if root and root == 'custom_fields':
+                if key == 'id':
+                    yield (data['id'], data['value'])
+            elif root:
+                path = root+'-'+key
+                yield from get_flatten_key_value_pairs(value, path)
+            else:
+                path = key
+                yield from get_flatten_key_value_pairs(value, path)
     elif isinstance(data, list):
         if all(map(lambda x: not isinstance(x, (dict, list)), data)):
             yield (root, ", ".join(map(str, [item for item in data])))
@@ -55,7 +62,7 @@ def get_unique_keys_from_dict_list(data):
 
 def to_csv(data, filename):
     target_full_path = path.join(path.curdir, 'exports', filename)
-    with open(target_full_path, 'w+',encoding='utf-8-sig',newline="") as csv_file:
+    with open(target_full_path, 'w+', encoding='utf-8-sig', newline="") as csv_file:
         ordered_keys = get_unique_keys_from_dict_list(data)
         writer = csv.DictWriter(csv_file, ordered_keys, dialect='excel')
         writer.writeheader()

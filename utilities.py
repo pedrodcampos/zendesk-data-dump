@@ -10,6 +10,25 @@ def dump_search(zendesk, query, filename):
     data = [flatten_dict(result) for result in search_results]
     print("\tDone.")
 
+    if 'ticket' in query:
+        print("# Parsing custom fields...")
+        ticket_fields, = zendesk.client.ticket_fields()
+        ticket_fields_mapping = {
+            ticket_field['id']: ticket_field['title'] for ticket_field in ticket_fields}
+
+        mapped = []
+        for item in data:
+            mapped_item = {}
+            for key, value in item.items():
+                if key in ticket_fields_mapping:
+                    new_key = f"{ticket_fields_mapping[key]} ({str(key)})"
+                    mapped_item.update({new_key: value})
+                else:
+                    mapped_item.update({key: value})
+            mapped.append(mapped_item)
+        data = mapped
+        print("\tDone.")
+
     print("# Exporting...")
     file_full_path = to_csv(data, filename or 'search.csv')
     print(f"\tExported to{file_full_path}")

@@ -9,6 +9,9 @@ class ZendeskClient(ZendeskRequest):
     __users_endpoint__ = 'users'
     __search_endpoint__ = 'search'
     __search_key__ = 'results'
+    __ticket_fields_endpoint__ = 'ticket_fields'
+    __ticket_fields_key__ = 'ticket_fields'
+    __per_page__ = 1000
 
     def __init__(self, url, auth):
         super().__init__(url, auth)
@@ -19,8 +22,13 @@ class ZendeskClient(ZendeskRequest):
     def users(self):
         return super().__get__(*self.__users_endpoint__.split('/'), keys=[self.__users_key__], params=None)
 
+    def ticket_fields(self):
+        return super().__get__(*self.__ticket_fields_endpoint__.split('/'), keys=[self.__ticket_fields_key__], params=None)
+
     def search(self, query):
-        params = {'query': query}
+        params = {
+            'query': query,
+            'per_page': self.__per_page__}
         return super().__get__(*self.__search_endpoint__.split("/"), keys=[self.__search_key__], params=params)
 
 

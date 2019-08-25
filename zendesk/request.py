@@ -50,14 +50,19 @@ class ZendeskRequest:
         while url:
             response = self.__session.get(url)
 
-            if response.status_code != 200:
-                raise BaseException(
-                    f"Zendesk API Error:{response.status_code}")
-
             if response.status_code == 429:
                 print('Rate limited! Please wait.')
                 time.sleep(int(response.headers['retry-after']))
                 continue
+
+            if response.status_code == 502:
+                print('Server error; Retrying in 5 sec.')
+                time.sleep(5)
+                continue
+
+            if response.status_code != 200:
+                raise BaseException(
+                    f"Zendesk API Error:{response.status_code}")
 
             response = response.json()
 
@@ -69,11 +74,12 @@ class ZendeskRequest:
 
             count = response.get('count', None)
             url = response.get('next_page', None)
-
-            print(f'Got {len(data[keys[0]])}/{count}')
+            if count is not None:
+                print(f'Got {len(data[keys[0]])}/{count}')
 
         for key in keys:
             if key in data:
-                data[key] = self.__reduce(data[key])
+                if type(data[key]) == list:
+                    data[key] = self.__reduce(data[key])
 
         return data.values()

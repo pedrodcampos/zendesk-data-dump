@@ -11,6 +11,8 @@ class ZendeskClient(ZendeskRequest):
     __search_key__ = 'results'
     __ticket_fields_endpoint__ = 'ticket_fields'
     __ticket_fields_key__ = 'ticket_fields'
+    __ticket_metrics_endpoint__ = 'tickets/:id/metrics'
+    __ticket_metrics_key__ = 'ticket_metric'
     __per_page__ = 1000
 
     def __init__(self, url, auth):
@@ -24,6 +26,10 @@ class ZendeskClient(ZendeskRequest):
 
     def ticket_fields(self):
         return super().__get__(*self.__ticket_fields_endpoint__.split('/'), keys=[self.__ticket_fields_key__], params=None)
+
+    def get_ticket_metrics(self, ticketId):
+        url = self.__ticket_metrics_endpoint__.replace(':id', str(ticketId))
+        return super().__get__(*url.split('/'), keys=[self.__ticket_metrics_key__], params=None)
 
     def search(self, query):
         params = {

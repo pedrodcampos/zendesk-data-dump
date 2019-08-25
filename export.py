@@ -3,7 +3,7 @@ import argparse
 
 from config import build_zendesk_config
 from zendesk import Zendesk
-
+from urllib.parse import quote
 from utilities import dump_articles, dump_search
 
 
@@ -40,4 +40,5 @@ zendesk = Zendesk(**zendesk_config)
 if args.endpoint == 'articles':
     dump_articles(zendesk, args.filename)
 elif args.endpoint == 'search':
-    dump_search(zendesk, args.query, args.filename)
+    dump_search(zendesk, args.query, include_custom_fields=True,
+                filename=args.filename)

@@ -41,4 +41,4 @@ if args.endpoint == 'articles':
     dump_articles(zendesk, args.filename)
 elif args.endpoint == 'search':
     dump_search(zendesk, args.query, include_custom_fields=True,
-                filename=args.filename)
+                filename=args.filename or 'output')

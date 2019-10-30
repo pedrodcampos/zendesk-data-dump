@@ -1,6 +1,7 @@
 import json
 import csv
 import os.path as path
+from os import makedirs
 from collections import OrderedDict
 
 
@@ -61,7 +62,9 @@ def get_unique_keys_from_dict_list(data):
 
 
 def to_csv(data, filename):
-    target_full_path = path.join(path.curdir, 'exports', filename)
+    target_folder = path.join(path.curdir, 'exports')
+    target_full_path = path.join(target_folder, filename)
+    makedirs(target_folder, exist_ok=True)
     with open(target_full_path, 'w+', encoding='utf-8-sig', newline="") as csv_file:
         ordered_keys = get_unique_keys_from_dict_list(data)
         writer = csv.DictWriter(csv_file, ordered_keys, dialect='excel')
